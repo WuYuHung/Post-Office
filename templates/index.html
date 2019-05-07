@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html> 
+<head> 
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> 
+  <title>Google Maps Multiple Markers</title> 
+</head> 
+<body>
+  <div id="map" style="width: 1600px; height: 800px;"></div>
+
+  <script type="text/javascript">
+    function initMap(){
+    var locations = {{ rows|safe }};
+    var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 10,
+      center: new google.maps.LatLng(24.954,121.189),
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    var infowindow = new google.maps.InfoWindow();
+
+    var marker, i;
+
+    for (i = 0; i < locations.length; i++) {  
+      marker = new google.maps.Marker({
+        position: new google.maps.LatLng(locations[i][0], locations[i][1]),
+        map: map
+      });
+
+      google.maps.event.addListener(marker, 'click', (function(marker, i) {
+        return function() {
+          infowindow.open(map, marker);
+          console.log(locations[i][0], locations[i][1]);
+        }
+      })(marker, i));
+    }
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAMKqxJje6VB5SyWNptCqac_t5FVu79keY&callback=initMap"
+    async defer></script>
+</body>
+</html>
