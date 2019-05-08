@@ -1,7 +1,10 @@
-from django.shortcuts import render
-from django.conf import settings
 import csv
+from datetime import time, datetime, date, timedelta
 from pprint import pprint
+
+from django.conf import settings
+from django.shortcuts import render
+
 # Create your views here.
 
 BASE_DIR = settings.STATICFILES_DIRS[0]
@@ -11,8 +14,6 @@ def index(request):
         rows = list(csv.reader(f))[1:]
     differ = list()
     rows = sorted(rows, key = lambda x:(x[0], x[1]))[3:]
-    pprint(rows)
-    pprint(rows)
     print(len(rows))
     for index, i in enumerate(rows):
         if index != len(rows) - 1:
@@ -21,4 +22,34 @@ def index(request):
     print('*****', sum(map(int, differ)))
     rows = [j for index, j in enumerate(rows) if not differ[index]]
     print(len(rows))
+    return render(request, 'index.html', {'rows': rows})
+
+def sixty_eight(request):
+    with open(BASE_DIR + '/6889.csv', 'r', encoding='big5') as f:
+        rows = list(csv.reader(f))[1:]
+    starts = dict()
+    box = list()
+    rows.sort(key=lambda x:x[0])
+    print(rows)
+    for i in rows:
+        if i[0] not in starts:
+            starts[i[0]] = dict(E= i[4], N=i[5], time=i[6])
+            box.append(i)
+        else:
+            time_split = [list(map(int, i.split(' ')[2].split(':'))) for i in (starts[i[0]]['time'], i[6])]
+            if '下' in starts[i[0]]['time'].split(' ')[1] and time_split[0][0] != 12:
+                time_split[0][0] += 12
+            if '下' in i[6].split(' ')[1] and time_split[1][0] != 12:
+                time_split[1][0] += 12
+            start_time = time(time_split[0][0], time_split[0][1], time_split[0][2])
+            end_time = time(time_split[1][0], time_split[1][1], time_split[1][2])
+            duration = datetime.combine(date.min, end_time) - datetime.combine(date.min, start_time)
+            if duration >= timedelta(hours=1) and (abs(float(i[4]) - float(starts[i[0]]['E']) <= 0.001 and abs(float(i[5]) - float(starts[i[0]]['N']) <= 0.001))):
+                box.append(i)
+                starts[i[0]]['time'] = i[6]
+    pprint(box)
+    with open(BASE_DIR + '/output.csv', 'w', encoding='big5') as csvfile:
+        writer = csv.writer(csvfile)
+        for i in box:
+            writer.writerow(i)
     return render(request, 'index.html', {'rows': rows})
