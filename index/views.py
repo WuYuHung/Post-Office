@@ -52,4 +52,5 @@ def sixty_eight(request):
         writer = csv.writer(csvfile)
         for i in box:
             writer.writerow(i)
-    return render(request, 'index.html', {'rows': rows})
+    locations = [[i[5], i[4]] for i in rows]
+    return render(request, 'index.html', {'rows': locations})
