@@ -51,8 +51,9 @@ def sixty_eight(request):
                 box.append(i)
                 starts[i[0]]['time'] = i[6]
     pprint(box)
-    with open(BASE_DIR + '/6889_output.csv', 'w', encoding='big5') as csvfile:
+    with open(BASE_DIR + '/6889_output.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
+        writer.writerow(['車牌', '狀態', '行車速度',	'車頭方向',	'東經',	'北緯',	'日期時間',	'累積里程數',	'路段速限',	'局號'])
         for i in box:
             writer.writerow(i)
     locations = [[i[5], i[4]] for i in box]
