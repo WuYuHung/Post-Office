@@ -29,7 +29,17 @@ def sixty_eight(request):
     with open(BASE_DIR + '/20180312/100600 68 89.csv', 'r') as f:
         rows = list(csv.reader(f))[1:]
     with open(BASE_DIR + '/20180312/100600 78.csv', 'r') as f:
-        rows += list(csv.reader(f))[1:]
+        rows78 = list(csv.reader(f))[1:]
+    rows78.sort(key=lambda x:x[0])
+    hash_map = set()
+    for i in rows78:
+        print(i)
+        if i[0] in hash_map:
+            continue
+        else:
+            hash_map.add(i[0])
+            rows.append(i)
+    print(rows)
     starts = dict()
     box = list()
     rows.sort(key=lambda x:x[0])
