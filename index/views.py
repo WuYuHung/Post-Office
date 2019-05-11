@@ -31,19 +31,18 @@ def sixty_eight(request):
     with open(BASE_DIR + '/20180312/100600 78.csv', 'r') as f:
         rows78 = list(csv.reader(f))[1:]
     rows78.sort(key=lambda x:x[0])
+    picks = list()
     hash_map = set()
+    starts = dict()
+    box = list()
     for i in rows78:
-        print(i)
         if i[0] in hash_map:
             continue
         else:
             hash_map.add(i[0])
-            rows.append(i)
-    print(rows)
-    starts = dict()
-    box = list()
+            starts[i[0]] = dict(E= i[4], N=i[5], time=i[6])
+            box.append(i)
     rows.sort(key=lambda x:x[0])
-    print(rows)
     for i in rows:
         if i[0] not in starts:
             starts[i[0]] = dict(E= i[4], N=i[5], time=i[6])
@@ -57,10 +56,10 @@ def sixty_eight(request):
             start_time = time(time_split[0][0], time_split[0][1], time_split[0][2])
             end_time = time(time_split[1][0], time_split[1][1], time_split[1][2])
             duration = datetime.combine(date.min, end_time) - datetime.combine(date.min, start_time)
-            if duration >= timedelta(hours=1) and (abs(float(i[4]) - float(starts[i[0]]['E']) <= 0.005 and abs(float(i[5]) - float(starts[i[0]]['N']) <= 0.005))):
+            if duration >= timedelta(hours=1) and (abs(float(i[4]) - float(starts[i[0]]['E']) <= 0.003 and abs(float(i[5]) - float(starts[i[0]]['N']) <= 0.003))):
                 box.append(i)
                 starts[i[0]]['time'] = i[6]
-    pprint(box)
+    box.sort(key=lambda x:x[0])
     with open(BASE_DIR + '/6889_output.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['車牌', '狀態', '行車速度',	'車頭方向',	'東經',	'北緯',	'日期時間',	'累積里程數',	'路段速限',	'局號'])
@@ -96,7 +95,7 @@ def ninety(request):
     final_box = list()
     for i in box:
         for n in final_box:
-            if i[0] - 0.005 <= n[0] <= i[0] + 0.005 and i[1] - 0.005 <= n[1] <= i[1] + 0.005:
+            if i[0] - 0.003 <= n[0] <= i[0] + 0.003 and i[1] - 0.003 <= n[1] <= i[1] + 0.003:
                 n[2] += 1
                 break
         else:
