@@ -56,9 +56,10 @@ def sixty_eight(request):
             start_time = time(time_split[0][0], time_split[0][1], time_split[0][2])
             end_time = time(time_split[1][0], time_split[1][1], time_split[1][2])
             duration = datetime.combine(date.min, end_time) - datetime.combine(date.min, start_time)
-            if duration >= timedelta(hours=1) and (abs(float(i[4]) - float(starts[i[0]]['E']) <= 0.003 and abs(float(i[5]) - float(starts[i[0]]['N']) <= 0.003))):
+            if duration >= timedelta(hours=1) and (abs(float(i[4]) - float(starts[i[0]]['E'])) <= 0.003 and abs(float(i[5]) - float(starts[i[0]]['N']) <= 0.003)):
                 box.append(i)
                 starts[i[0]]['time'] = i[6]
+    print(starts)
     box.sort(key=lambda x:x[0])
     with open(BASE_DIR + '/6889_output.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
