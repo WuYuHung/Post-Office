@@ -8,7 +8,7 @@ from django.shortcuts import render
 
 # Create your views here.
 
-BASE_DIR = settings.STATICFILES_DIRS[0]
+BASE_DIR = settings.STATICFILES_DIRS[0] + '/big data'
 
 def index(request):
     with open(BASE_DIR + '/positions.csv', 'r', encoding='big5') as f:
@@ -26,8 +26,10 @@ def index(request):
     return render(request, 'index.html', {'rows': rows})
 
 def sixty_eight(request):
-    with open(BASE_DIR + '/6889.csv', 'r', encoding='big5') as f:
+    with open(BASE_DIR + '/20180312/100600 68 89.csv', 'r') as f:
         rows = list(csv.reader(f))[1:]
+    with open(BASE_DIR + '/20180312/100600 78.csv', 'r') as f:
+        rows += list(csv.reader(f))[1:]
     starts = dict()
     box = list()
     rows.sort(key=lambda x:x[0])
@@ -53,7 +55,7 @@ def sixty_eight(request):
         writer = csv.writer(csvfile)
         for i in box:
             writer.writerow(i)
-    locations = [[i[5], i[4]] for i in rows]
+    locations = [[i[5], i[4]] for i in box]
     return render(request, 'index.html', {'rows': locations})
 
 def ninety(request):
