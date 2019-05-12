@@ -26,9 +26,9 @@ def index(request):
     return render(request, 'index.html', {'rows': rows})
 
 def sixty_eight(request):
-    with open(BASE_DIR + '/20180312/100600 68 89.csv', 'r') as f:
+    with open(BASE_DIR + '/20180312/600051 68 89.csv', 'r') as f:
         rows = list(csv.reader(f))[1:]
-    with open(BASE_DIR + '/20180312/100600 78.csv', 'r') as f:
+    with open(BASE_DIR + '/20180312/600051 78.csv', 'r') as f:
         rows78 = list(csv.reader(f))[1:]
     rows78.sort(key=lambda x:x[0])
     picks = list()
@@ -61,16 +61,16 @@ def sixty_eight(request):
                 starts[i[0]]['time'] = i[6]
     print(starts)
     box.sort(key=lambda x:x[0])
-    with open(BASE_DIR + '/6889_output.csv', 'w') as csvfile:
+    with open(BASE_DIR + '/6889_600051_output.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['車牌', '狀態', '行車速度',	'車頭方向',	'東經',	'北緯',	'日期時間',	'累積里程數',	'路段速限',	'局號'])
+        writer.writerow(['車牌', '狀態', '行車速度','車頭方向',	'東經',	'北緯',	'日期時間',	'累積里程數',	'路段速限',	'局號'])
         for i in box:
             writer.writerow(i)
     locations = [[i[5], i[4]] for i in box]
     return render(request, 'index.html', {'rows': locations})
 
 def ninety(request):
-    with open(BASE_DIR + '/9091.csv', 'r', encoding='big5') as f:
+    with open(BASE_DIR + '/20180312/600051 90 91.csv', 'r') as f:
         rows = list(csv.reader(f))[1:]
     starts = dict()
     box = list()
@@ -102,7 +102,7 @@ def ninety(request):
         else:
             final_box.append(i)
     print(final_box)
-    with open(BASE_DIR + '/9091_output.csv', 'w', encoding='big5') as csvfile:
+    with open(BASE_DIR + '/9091_600051_output.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['N', 'E', 'Capacity'])
         for i in box:
