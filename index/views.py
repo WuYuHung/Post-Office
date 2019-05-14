@@ -1,40 +1,27 @@
 import csv
 from datetime import date, datetime, time, timedelta
-from pprint import pprint
 
 import numpy as np
+import pandas as pd
 from django.conf import settings
 from django.shortcuts import render
+from sklearn.cluster import KMeans
 
 # Create your views here.
 
 BASE_DIR = settings.STATICFILES_DIRS[0] + '/big data'
-
-def index(request):
-    with open(BASE_DIR + '/positions.csv', 'r', encoding='big5') as f:
-        rows = list(csv.reader(f))[1:]
-    differ = list()
-    rows = sorted(rows, key = lambda x:(x[0], x[1]))[3:]
-    print(len(rows))
-    for index, i in enumerate(rows):
-        if index != len(rows) - 1:
-            differ.append(abs(float(i[1]) - float(rows[index + 1][1])) <= 0.0001 or abs(float(i[0]) - float(rows[index + 1][0])) <= 0.0001)
-    differ += [False]
-    print('*****', sum(map(int, differ)))
-    rows = [j for index, j in enumerate(rows) if not differ[index]]
-    print(len(rows))
-    return render(request, 'index.html', {'rows': rows})
+DAY = '20180319'
+OFFICE = '950580'
 
 def sixty_eight(request):
-    with open(BASE_DIR + '/20180312/600051 68 89.csv', 'r') as f:
-        rows = list(csv.reader(f))[1:]
-    with open(BASE_DIR + '/20180312/600051 78.csv', 'r') as f:
-        rows78 = list(csv.reader(f))[1:]
+    excel = pd.read_excel(BASE_DIR + f'/{DAY}/{OFFICE} 68 89.xlsx')
+    rows = list(excel.values[1:])
+    excel = pd.read_excel(BASE_DIR + f'/{DAY}/{OFFICE} 78.xlsx')
+    rows78 = list(excel.values[1:])
     rows78.sort(key=lambda x:x[0])
-    picks = list()
+    picks, box = [list() for i in range(2)]
     hash_map = set()
     starts = dict()
-    box = list()
     for i in rows78:
         if i[0] in hash_map:
             continue
@@ -59,9 +46,8 @@ def sixty_eight(request):
             if duration >= timedelta(hours=1) and (abs(float(i[4]) - float(starts[i[0]]['E'])) <= 0.003 and abs(float(i[5]) - float(starts[i[0]]['N']) <= 0.003)):
                 box.append(i)
                 starts[i[0]]['time'] = i[6]
-    print(starts)
     box.sort(key=lambda x:x[0])
-    with open(BASE_DIR + '/6889_600051_output.csv', 'w') as csvfile:
+    with open(BASE_DIR + f'/6889_output.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['車牌', '狀態', '行車速度','車頭方向',	'東經',	'北緯',	'日期時間',	'累積里程數',	'路段速限',	'局號'])
         for i in box:
@@ -70,8 +56,10 @@ def sixty_eight(request):
     return render(request, 'index.html', {'rows': locations})
 
 def ninety(request):
-    with open(BASE_DIR + '/20180312/600051 90 91.csv', 'r') as f:
-        rows = list(csv.reader(f))[1:]
+    post_office = [121.1541,22.7532] # modifiey frquently
+    post_office[0], post_office[1] = post_office[1], post_office[0]
+    excel = pd.read_excel(BASE_DIR + f'/{DAY}/{OFFICE} 90 91.xlsx')
+    rows = list(excel.values[1:])
     starts = dict()
     box = list()
     rows.sort(key=lambda x:x[0])
@@ -88,24 +76,38 @@ def ninety(request):
             start_time = time(time_split[0][0], time_split[0][1], time_split[0][2])
             end_time = time(time_split[1][0], time_split[1][1], time_split[1][2])
             duration = datetime.combine(date.min, end_time) - datetime.combine(date.min, start_time)
-            if duration >= timedelta(minutes=30):
+            if duration >= timedelta(minutes=10):
                 box.append(i)
                 starts[i[0]]['time'] = i[6]
     box = [[float(i[5]), float(i[4]), 1] for i in box]
-    print(box)
     final_box = list()
     for i in box:
         for n in final_box:
-            if i[0] - 0.003 <= n[0] <= i[0] + 0.003 and i[1] - 0.003 <= n[1] <= i[1] + 0.003:
+            if i[0] - 0.001 <= n[0] <= i[0] + 0.001 and i[1] - 0.001 <= n[1] <= i[1] + 0.001:
                 n[2] += 1
                 break
         else:
             final_box.append(i)
-    print(final_box)
-    with open(BASE_DIR + '/9091_600051_output.csv', 'w') as csvfile:
+    final_box = [[i[0], i[1]] for i in final_box]
+    clf = KMeans(n_clusters=3) # n_clusters 集為分群數量，可根據每天的車輛數進行調整
+    clf.fit(final_box)
+    labels = clf.predict(final_box)
+    clusters = {}
+    row_dict = final_box
+    n = 0
+    for item in labels:
+        if item in clusters:
+            clusters[item].append(row_dict[n])
+        else:
+            clusters[item] = [row_dict[n]]
+        n += 1
+    clusters = list(clusters.values())
+    for index, i in enumerate(clusters):
+        clusters[index] = [post_office] + i
+    with open(BASE_DIR + f'/{DAY}/9091_{OFFICE}_output.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['N', 'E', 'Capacity'])
         for i in box:
             writer.writerow(i)
     locations = [[i[0], i[1]] for i in final_box]
-    return render(request, 'index.html', {'rows': locations})
+    return render(request, 'index.html', {'rows': locations, 'clusters': clusters})
