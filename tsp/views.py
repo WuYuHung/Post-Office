@@ -51,7 +51,7 @@ def print_solution(manager, routing, assignment, indexs):
     return route_distance
 
 
-def main():
+def main(requests):
     clusters = list()
     total_distance = 0
     for index, i in enumerate(clusters):
