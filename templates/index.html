@@ -97,12 +97,6 @@
 
         </div>
         <button type="submit" class="btn btn-primary" id="submit">Submit</button>
-        <div class="card" style="width: 18rem;">
-            <img class="card-img-top" src="..." alt="Card image cap">
-            <div class="card-body">
-                <p class="card-text">QR code</p>
-            </div>
-        </div>
     </form>
     <script>
         function calculate(){
@@ -142,6 +136,13 @@
                     phone: phone,
                     kind: kind,
                     amount: amount
+                },
+                success: function (response) {
+                    alert('填寫成功！');
+                    window.location.href = response.url;
+                },
+                error: function (response) {
+                    alert('填寫失敗！');
                 }
             });
         })

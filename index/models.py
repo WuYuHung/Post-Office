@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import datetime
+import zipcodetw
 
 class data(models.Model):
     def __str__(self):
@@ -8,6 +9,7 @@ class data(models.Model):
     receiverName = models.CharField(max_length=30)
     senderName = models.CharField(max_length=30)
     receiverAddress = models.CharField(max_length=50)
+    receiverAddressID = models.CharField(max_length=5, default='None')
     senderAddress = models.CharField(max_length=50)
     phone = models.CharField(max_length=15)
     kind = models.IntegerField()
