@@ -1,75 +1,151 @@
-<!DOCTYPE html>
-<html> 
-<head> 
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> 
-  <title>Simulator</title> 
-</head> 
+<html lang="en">
+
+<head>
+    <title>PostOffice Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Mukta:300,400,700">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+</head>
+
 <body>
-  <div id="map" style="width: 1600px; height: 800px;"></div>
 
-  <script type="text/javascript">
-    function initMap(){
-    var locations = {{ rows|safe }};
-    var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 10,
-      center: new google.maps.LatLng(24.954,121.189),
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    });
+    <h1 style ="color:green">郵務登記</h1>
+    <form method="POST" class="was-validated" id="submit_form"> {% csrf_token %}
+        <div class="form-group row">
+            <div class="col-auto"></div>
+            <div class="col-auto">
+                <label for="receiver">收件人姓名</label>
+                <input type="text" class="form-control" id="receiverName"
+                    placeholder="收件人姓名" [disabled]="disabled" required>
+            </div>
+            <div class="col-auto">
+                <label for="sender">寄件人姓名</label>
+                <input type="text" class="form-control" id="senderName" placeholder="寄件人姓名" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-auto"></div>
+            <div class="col-md-4">
+                <label for="receiverAdress">收件人地址</label>
+                <input type="text" class="form-control" id="receiverAddress" {{receiverAddress}}="receiverAddress"
+                    placeholder="收件人地址" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-auto"></div>
+            <div class="col-md-4">
+                <label for="receiverAdress">寄件人地址</label>
+                <input type="text" class="form-control" id="senderAddress" {{senderAddress}}="senderAddress"
+                    placeholder="寄件人地址" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-auto"></div>
+            <div class="col-md-2">
+                <label for="phone">寄件人電話號碼</label>
+                <input type="text" class="form-control" id="phone" placeholder="寄件人電話號碼"
+                    required pattern='\d{4}\d{6}'>
+                <div class="invalid-feedback">請填寫正確格式之手機號碼</div>
+            </div>
+        </div>
+        <div class="form-group row">
 
-    var infowindow = new google.maps.InfoWindow();
+            <div class="col-auto"></div>
+            <div class="col-auto">
+                <label for="mailtype" class="text-black">信件種類</label>
+                <select class="custom-select" id="kind" onchange="calculate()" required>
+                    <option value="">選擇信件種類</option>
+                    <option value="1">普通</option>
+                    <option value="2">限時</option>
+                    <option value="3">普通掛號</option>
+                    <option value="4">限時掛號</option>
+                    <option value="5">普通掛號附回執(回執為平信)</option>
+                    <option value="6">限時掛號附回執(回執為平信)</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label for="amount">信件數量</label>
+                <input type="text" class="form-control" id="amount" {{amount}}="amount" placeholder="信件數量" onchange="calculate()" required>
+            </div>
 
-    var marker, i;
-    for (i = 0; i < locations.length; i++) {  
-      marker = new google.maps.Marker({
-        position: new google.maps.LatLng(locations[i][0], locations[i][1]),
-        map: map
-      });
+        </div>
+        <div class="col-md-6">
+            <div class="col-auto"></div>
+            <h2 class="h3 mb-3 text-black">總價格</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th class="mailtype">信件類型</th>
+                        <th class="price">價格</th>
+                        <th class="amount">數量</th>
+                        <th class="total">總價</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id='kind_table'></td>
+                        <td id='price_table'></td>
+                        <td id='amount_table'></td>
+                        <td id='product_table'></td>
+                    </tr>
+                </tbody>
+            </table>
 
-      google.maps.event.addListener(marker, 'click', (function(marker, i) {
-        return function() {
-          infowindow.open(map, marker);
-          console.log(locations[i][0], locations[i][1]);
+        </div>
+        <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+        <div class="card" style="width: 18rem;">
+            <img class="card-img-top" src="..." alt="Card image cap">
+            <div class="card-body">
+                <p class="card-text">QR code</p>
+            </div>
+        </div>
+    </form>
+    <script>
+        function calculate(){
+            var kind = document.getElementById('kind').value;
+            var amount = document.getElementById('amount').value;
+            kind_dict = {
+                '' : {'name': '尚未選擇', 'price': 0},
+                '1': {'name': '普通', 'price': 8},
+                '2': {'name': '限時', 'price': 15},
+                '3': {'name': '普通掛號', 'price': 28},
+                '4': {'name': '限時掛號', 'price': 35},
+                '5': {'name': '普通掛號附回執(回執為平信)', 'price': 43},
+                '6': {'name': '限時掛號附回執(回執為平信)', 'price': 50}
+            }
+            document.getElementById('kind_table').innerHTML = kind_dict[kind]['name'];
+            document.getElementById('price_table').innerHTML = kind_dict[kind]['price'];
+            document.getElementById('amount_table').innerHTML = amount;
+             document.getElementById('product_table').innerHTML = kind_dict[kind]['price'] * amount;
         }
-      })(marker, i));
+        $('#submit').click(function(){
+            var receiverName = document.getElementById('receiverName').value;
+            var senderName = document.getElementById('senderName').value;
+            var receiverAddress = document.getElementById('receiverAddress').value;
+            var senderAddress = document.getElementById('senderAddress').value;
+            var phone = document.getElementById('phone').value;
+            var kind = document.getElementById('kind').value;
+            var amount = document.getElementById('amount').value;
 
-    }
-    clusters = {{ clusters }};
-    var bounds = new google.maps.LatLngBounds();
-    var directionsService = new google.maps.DirectionsService;
-    colors = ["blue", "green"];
-    console.log(clusters);
-    for (j = 0; j < 2; j++) {
-      temp = clusters[j];
-      for (i = 0; i < temp.length - 1; i++) {
-        var directionsDisplay = new google.maps.DirectionsRenderer({
-          map: map,
-          preserveViewport: true,
-          polylineOptions: {
-            strokeColor: colors[j]
-          }
-        });
-        directionsDisplay.setOptions({suppressMarkers: true});
-          var origin = new google.maps.LatLng(temp[i][0], temp[i][1]);
-          var destination = new google.maps.LatLng(temp[i + 1][0], temp[i + 1][1]);
-          calculateAndDisplayRoute(directionsService, directionsDisplay, origin, destination, bounds);
-        }
-      }
-      function calculateAndDisplayRoute(directionsService, directionsDisplay, startPoint, endPoint, bounds) {
-        directionsService.route({
-          origin: startPoint,
-          destination: endPoint,
-          travelMode: 'DRIVING'
-        }, function(response, status) {
-          if (status === 'OK') {
-            directionsDisplay.setDirections(response);
-          } else {
-            window.alert('Impossible d afficher la route ' + status);
-          }
-        });
-      }
-    }
-  </script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=// KEY //&callback=initMap"
-    async defer></script>
+            $.ajax({
+                type: 'GET',
+                url: '/post_form',
+                data: {
+                    receiverName:  receiverName,
+                    senderName: senderName,
+                    receiverAddress: receiverAddress,
+                    senderAddress: senderAddress,
+                    phone: phone,
+                    kind: kind,
+                    amount: amount
+                }
+            });
+        })
+    </script>
 </body>
+
 </html>
