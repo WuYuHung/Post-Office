@@ -10,8 +10,8 @@ from sklearn.cluster import KMeans
 # Create your views here.
 
 BASE_DIR = settings.STATICFILES_DIRS[0] + '/big data'
-DAY = '20180319'
-OFFICE = '950580'
+DAY = '20180316'
+OFFICE = '600051'
 
 def sixty_eight(request):
     excel = pd.read_excel(BASE_DIR + f'/{DAY}/{OFFICE} 68 89.xlsx')
